@@ -10,6 +10,7 @@
 - **Forward Authentication**: ใช้ Auth Service ในการตรวจสอบผู้ใช้และส่ง Header `X-Auth-User`, `X-Auth-User-ID`ไปที่ App Service
 
 ## โครงสร้างโปรเจกต์
+```bash
 .
 ├── README.md
 ├── app-service
@@ -28,7 +29,7 @@
 └── traefik
     ├── dynamic_conf.yml
     └── traefik.yml
-
+```
 
 ## วิธีrun โปรเจกต์
 
