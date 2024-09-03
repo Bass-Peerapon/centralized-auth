@@ -1,0 +1,58 @@
+http:
+  routers:
+    app-router:
+      entryPoints:
+        - web
+      rule: "PathPrefix(`/app/`)"
+      service: app-service
+      middlewares:
+        - strip-app-prefix
+        - auth
+
+    auth-router:
+      entryPoints:
+        - web
+      rule: "PathPrefix(`/auth/`)"
+      service: auth-service
+      middlewares:
+        - strip-auth-prefix
+    keycloak-router:
+      entryPoints:
+        - web
+      rule: "Host(`keycloak.localhost`)"
+      service: keycloak
+
+  services:
+    app-service:
+      loadBalancer:
+        servers:
+          - url: "http://app-service:8002"
+
+    auth-service:
+      loadBalancer:
+        servers:
+          - url: "http://auth-service:8001"
+
+    keycloak:
+      loadBalancer:
+        servers:
+          - url: "http://keycloak:8080"
+
+  middlewares:
+    strip-app-prefix:
+      stripPrefix:
+        prefixes:
+          - "/app"
+
+    strip-auth-prefix:
+      stripPrefix:
+        prefixes:
+          - "/auth"
+
+    auth:
+      forwardAuth:
+        address: "http://auth-service:8001/auth"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Auth-User
+          - X-Auth-User-ID

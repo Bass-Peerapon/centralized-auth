@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    command: -v start-dev --import-realm
+
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8082:8080"
+    networks:
+      - default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ./traefik/dynamic_conf.yml:/dynamic_conf.yml
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8001:8001"
+    networks:
+      - default
+    depends_on:
+      - keycloak
+
+  app-service:
+    build: ./app-service
+    ports:
+      - "8002:8002"
+    networks:
+      - default
+    depends_on:
+      - keycloak
+
+networks:
+  default:
+    external: true
+    name: proxy
